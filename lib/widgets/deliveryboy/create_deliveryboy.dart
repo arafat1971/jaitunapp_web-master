@@ -1,0 +1,159 @@
+import 'package:ars_dialog/ars_dialog.dart';
+import 'package:flutter/material.dart';
+import 'package:shapeyouadmin_web/services/firebase_services.dart';
+
+class CreateNewBoyWidget extends StatefulWidget {
+  @override
+  _CreateNewBoyWidgetState createState() => _CreateNewBoyWidgetState();
+}
+
+class _CreateNewBoyWidgetState extends State<CreateNewBoyWidget> {
+   final _formKey= GlobalKey<FormState>();
+  FirebaseServices _services = FirebaseServices();
+  var emailText = TextEditingController();
+  var passwordText = TextEditingController();
+  bool _visible = false;
+
+
+  @override
+  Widget build(BuildContext context) {
+
+    ProgressDialog progressDialog = ProgressDialog(context,
+        blur: 2,
+        backgroundColor: Color(0xFF84c225).withOpacity(.3),
+        transitionDuration: Duration(milliseconds: 500));
+
+    return Container(
+      color: Colors.grey,
+      width: MediaQuery.of(context).size.width,
+      height: 80,
+      child: Row(
+        children: [
+          Visibility(
+            visible: _visible ? false : true,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 30),
+              child: Container(
+                child: FlatButton(
+                    child: Text(
+                      'Create new Delivery Boy',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _visible = true;
+                      });
+                    },
+                    color: Colors.black54
+                ),
+              ),
+            ),
+          ),
+          Visibility(
+            visible: _visible,
+            child: Container(
+              child: Padding(
+                padding: const EdgeInsets.only(left: 30),
+                child: Container(
+                  child: Form(
+                    key: _formKey,
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 200,
+                          height: 30,
+                          child: TextField(
+                            //TODO : Email validator
+                            controller: emailText,
+                            decoration: InputDecoration(
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Colors.black, width: 1),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              hintText: 'Email ID',
+                              border: OutlineInputBorder(),
+                              contentPadding:
+                              EdgeInsets.only(left: 20),),
+                          ),
+                        ),
+                        SizedBox(
+                          width: 10,
+                        ),
+                        SizedBox(
+                          width: 200,
+                          height: 30,
+                          child: TextField(
+                            controller: passwordText,
+                            decoration: InputDecoration(
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Colors.black, width: 1),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              hintText: 'Password',
+                              border: OutlineInputBorder(),
+                              contentPadding:
+                              EdgeInsets.only(left: 20),),
+                          ),
+                        ),
+                        SizedBox(
+                          width: 10,
+                        ),
+                        FlatButton(
+                            child: Text(
+                              'Save',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            onPressed: () {
+                              if(_formKey.currentState.validate()) {
+                                if (emailText.text.isEmpty) {
+                                  return _services.showMyDialog(
+                                      context: context,
+                                      title: 'Email ID',
+                                      message: 'Email Id not entered');
+                                }
+                                if (passwordText.text.isEmpty) {
+                                  return _services.showMyDialog(
+                                      context: context,
+                                      title: 'Password',
+                                      message: 'Password not entered');
+                                }
+                                if (passwordText.text.length <
+                                    6) { //minimum 6 character
+                                  return _services.showMyDialog(
+                                      context: context,
+                                      title: 'Password',
+                                      message: 'Minimum 6 Character');
+                                }
+                                progressDialog.show();
+                                _services.saveDeliverBoys(
+                                    emailText.text, passwordText.text)
+                                    .whenComplete(() {
+                                  emailText.clear();
+                                  passwordText.clear();
+                                  progressDialog.dismiss();
+                                  _services.showMyDialog(context: context,
+                                      title: 'Save Delivery Boy',
+                                      message: 'Saved Successfully'
+                                  );
+                                });
+                                return null;
+                              }
+                            },
+                            color: Colors.black54,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
